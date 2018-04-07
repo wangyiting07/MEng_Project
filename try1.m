@@ -22,7 +22,7 @@ function varargout = try1(varargin)
 
 % Edit the above text to modify the response to help try1
 
-% Last Modified by GUIDE v2.5 22-Feb-2018 19:45:24
+% Last Modified by GUIDE v2.5 10-Mar-2018 18:06:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,21 +56,12 @@ function try1_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % The slider for changing frequency
-set(handles.slider3, 'Min', 50);
-set(handles.slider3, 'Max', 200);
-set(handles.slider3, 'Value', 60);
-set(handles.slider3, 'SliderStep',[1/200,10/200]);
+set(handles.slider3, 'Min', 0);
+set(handles.slider3, 'Max', 20);
+set(handles.slider3, 'Value', 0);
+set(handles.slider3, 'SliderStep',[5/20,5/20]);
 
-global TIME;
-global lib;
-global result;
-global inlet;
-global GO;
 
-GO = false;
-lib = lsl_loadlib();
-result = {};
-TIME = 60.0;
 % The timer
 handles.timer = timer(...
     'ExecutionMode','FixedRate',...
@@ -81,8 +72,25 @@ handles.control = false;
 % UIWAIT makes try1 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+%data that controls arduino 
+
 % Update handles structure
+
+
+
+handles.data = '0 a';
 guidata(hObject, handles);
+%arduino
+clear arduino;
+if ~isempty(instrfind)
+     fclose(instrfind);
+      delete(instrfind);
+end
+handles.arduino=serial('COM4','BaudRate',9600);
+fopen(handles.arduino);
+%handles.arduino = arduino;
+%handles.data = '0 a';
+guidata(hObject,handles);
 end
 
 % --- Outputs from this function are returned to the command line.
@@ -137,63 +145,114 @@ end
 end
 
 
-% --- Executes on slider movement.
+% --- Executes on slider movement.  (Frequency) 
 function slider3_Callback(hObject, eventdata, handles)
 % hObject    handle to slider3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)\
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
 sliderValue=get(handles.slider3, 'Value');
-herz = num2str(sliderValue) + " Hz";
+herz = num2str(sliderValue) ;
 set(handles.text6,'String',herz);
+if(sliderValue >= 0 && sliderValue < 5)
+    fre = handles.data;
+    fre(3) = 'a';
+    handles.data = fre;
+    guidata(hObject,handles); 
+    fprintf(handles.arduino,'%s',handles.data); % send answer variable content to arduino
 end
 
-% --- Executes during object creation, after setting all properties.
+if(sliderValue >= 5 && sliderValue < 10)
+    fre = handles.data;
+    fre(3) = 'b';
+    handles.data = fre;
+    guidata(hObject,handles); 
+    fprintf(handles.arduino,'%s',handles.data); 
+end
+
+if(sliderValue >= 10 && sliderValue < 15)
+    fre = handles.data;
+    fre(3) = 'c';
+    handles.data = fre;
+    guidata(hObject,handles); 
+    fprintf(handles.arduino,'%s',handles.data); 
+end
+
+if(sliderValue >= 15 && sliderValue < 20)
+    fre = handles.data;
+    fre(3) = 'd';
+    handles.data = fre;
+    guidata(hObject,handles); 
+    fprintf(handles.arduino,'%s',handles.data); 
+    
+end
+
+if(sliderValue == 20 )
+    fre = handles.data;
+    fre(3) = 'e';
+    handles.data = fre;
+    guidata(hObject,handles); 
+    fprintf(handles.arduino,'%s',handles.data); 
+   
+end
+end
+
+% --- Executes during object creation, after setting all properties. (Frequency)
 function slider3_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to slider3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: slider controls usually have a light gray background.
+% set(handles.slider3, 'Min', 0);
+% set(handles.slider3, 'max', 200);
+% set(handles.slider3, 'Value', 0);
+guidata(hObject,handles); 
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 end
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-end
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-end
-
-% --- Executes on button press in pushbutton4.
+% --- Executes on button press in pushbutton4. // red
 function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+%handles.answer = 1;
+color = handles.data;
+color(1) = '1';
+handles.data = color;
+guidata(hObject,handles); 
+fprintf(handles.arduino,'%s',handles.data); % send answer variable content to arduino
 end
 
-% --- Executes on button press in pushbutton5.
+% --- Executes on button press in pushbutton5. //blue
 function pushbutton5_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+color = handles.data;
+color(1) = '2';
+handles.data = color;
+guidata(hObject,handles); 
+fprintf(handles.arduino,'%s',handles.data); 
+
 end
 
-% --- Executes on button press in pushbutton6.
+% --- Executes on button press in pushbutton6. //green
 function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+color = handles.data;
+color(1) = '3';
+handles.data = color;
+guidata(hObject,handles); 
+fprintf(handles.arduino,'%s',handles.data);
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -202,6 +261,7 @@ function text6_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 end
+
 
 % --- Executes during object creation, after setting all properties.
 function text7_CreateFcn(hObject, eventdata, handles)
@@ -217,75 +277,8 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global lib;
-global result;
-global inlet;
-axesHandle = handles.axes1;
-handles.cameraCleared = 0;
-guidata(hObject, handles);
 
-while isempty(result)
-    result = lsl_resolve_byprop(lib, 'type', 'EEG');
-end
-inlet = lsl_inlet(result{1});
 
-if strcmp(get(handles.timer, 'Running'), 'off')
-    start(handles.timer);
-end
-time_elap = 0:0.001:5;
-time_total = 0:0.001:60;
-low = zeros(1, length(time_total));
-high = zeros(1, length(time_total));
-diff = zeros(1, length(time_total));
-square = zeros(1, length(time_total));
-threshold = zeros(1, length(time_total));
-hb_disp = zeros(1, length(time_elap));
-hb_total = zeros(1, length(time_total));
-lh = plot(axesHandle, time_elap, hb_disp);
-t = 1;
-count = 1;
-while true
-    pause(0.0001);
-    handles = guidata(hObject);
-    set(axesHandle, 'YLim', [-400 400]);
-    if handles.cameraCleared == 1
-        break;
-    end
-    v = inlet.pull_sample();
-    %hb = get(lh, 'ydata');
-    if (abs(v) > 20)
-        hb_total(count) = v;
-    else
-        hb_total(count) = 0;
-    end
-    
-    if (handles.follow == true && count >= 4)
-        low(count) = 0.0279*hb_total(count)+0.0557*hb_total(count-1)...
-            +0.0279*hb_total(count-2)+1.4755*low(count-1)-0.5869*low(count-2);
-        high(count)=0.9846*low(count)-1.9691*low(count-1)+0.9846*low(count-2)...
-            +1.9689*high(count-1)-0.9694*high(count-2);
-        diff(count)=0.25*high(count)+0.125*high(count-1)-0.125*high(count-2)...
-            -0.25*high(count-3);
-        square(count) = diff(count).^2;
-        threshold(count) = max(square(count-3),square(count))/3;
-        real_thresh = max(threshold);
-        if (square(count)<=real_thresh)&&(square(count-1)>=real_thresh)
-            fprintf('peak\n');
-        else
-            fprintf('0\n');
-        end
-    end
-    hb = hb_total(t: t + 5000);
-    set(lh, 'ydata', hb);
-    count = count + 1;
-    if count > 5001
-        t = t + 1;
-    end
-%     fprintf('%.2f\t', ves);
-%     fprintf('%.2f\n', time);
-end
-
-%ReceiveData;
 end
 
 % --- Executes on button press in pushbutton8.
@@ -293,15 +286,7 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global TIME;
-handles.cameraCleared = 1;
-guidata(hObject, handles);
-disp('stop');
-if strcmp(get(handles.timer, 'Running'), 'on')
-    stop(handles.timer);
-end
-TIME = 60.0;
-set(handles.text7,'String','00:00:00.000');
+
 end
 
 function timerFcn(hObject, eventdata, hfigure)
@@ -311,11 +296,9 @@ global TIME;
 %GO = false;
 TIME = 60.0;
 stop(handles.timer);
-%elapsed_time = etime(clock, 0);
-% TIME = TIME - 0.001;
-% str = formatTimeFcn(TIME);
-% set(handles.text7,'String',str);
 end
+
+
 
 % function pauseFcn(varargin, hObject, eventdata, handles)
 %     global start_time;
@@ -359,4 +342,18 @@ end
 delete(handles.timer);
 
 delete(hObject);
+end
+
+
+% --- Executes on button press in pushbutton11. Stop button 
+function pushbutton11_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+color = handles.data;
+color(1) = '0';
+handles.data = color;
+guidata(hObject,handles); 
+fprintf(handles.arduino,'%s',handles.data);
+fclose(arduino);
 end
